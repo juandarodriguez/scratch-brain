@@ -1,0 +1,103 @@
+<html>
+
+<head>
+    <script src="https://cdn.rawgit.com/BrainJS/brain.js/45ce6ffc/browser.js"></script>
+    <script src="fun.js"></script>
+</head>
+
+<body>
+    Introduce término: <input type="text" id="txtTermino" />
+    Selecciona etiqueta: <select id="selectEtiqueta">
+        <option value="encender_lampara">encender_lampara</option>
+        <option value="apagar_lampara">apagar_lampara</option>
+    </select>
+    <button id="addTermino">Añadir término al modelo</button>
+    <button id="trainModel">Entrenar modelo</button>
+    <button id="openScratch">Abrir scratch</button>
+    <button id="updateModel">Actualizar modelo</button>
+    <script>
+
+        const config = {
+            iterations: 300,
+            log: true,
+            logPeriod: 50,
+            layers: [10]
+        };
+
+        // create data which will be used for training
+
+        const data = [
+            { input: "que me tocan el culo ", output: "encender_lampara" },
+            { input: "enciende la luz", output: "encender_lampara" },
+            { input: "esto está muy oscuro", output: "encender_lampara" },
+            { input: "qué oscuridad", output: "encender_lampara" },
+            { input: "dale a la luz", output: "encender_lampara" },
+            { input: "enciende la lámpara", output: "encender_lampara" },
+            { input: "se está poniendo el sol", output: "encender_lampara" },
+            { input: "no veo nada", output: "encender_lampara" },
+            { input: "necesito luz", output: "encender_lampara" },
+            { input: "no hay suficiente luz", output: "encender_lampara" },
+
+            { input: "apaga la luz", output: "apagar_lampara" },
+            { input: "apaga la lámpara", output: "apagar_lampara" },
+            { input: "hay demasiada luz", output: "apagar_lampara" },
+            { input: "menos luz", output: "apagar_lampara" },
+            { input: "desconecta la luz", output: "apagar_lampara" },
+            { input: "quiero estar en la oscuridad", output: "apagar_lampara" },
+            { input: "está demasiado claro", output: "apagar_lampara" },
+            { input: "mucha claridad", output: "apagar_lampara" },
+            { input: "me gusta la oscuridad", output: "apagar_lampara" },
+            { input: "prefiero la oscuridad", output: "apagar_lampara" },
+
+        ];
+
+        // the thing we would test
+        const test = [
+            "me cogen el culo",
+            "quita la luz",
+            "apagar la lampara por favor",
+            "tio apaga la luz",
+            "tio enciende la luz",
+        ];
+
+        function trainModel() {
+            const network = new brain.recurrent.LSTM();
+            network.train(data, config);
+            var fun = network.toFunction();
+            return fun;
+            //console.log(fun.toString());
+        }
+
+
+        let scratchWindow;
+        let model;
+        document.getElementById("openScratch").addEventListener("click", () => {
+            scratchWindow = window.open('http://localhost:8601');
+        });
+
+        document.getElementById("trainModel").addEventListener("click", () => {
+            model = trainModel();
+            alert("modelo entrenado");
+
+        });
+
+        document.getElementById("updateModel").addEventListener("click", () => {
+            let code = model.toString().match(/function[^{]+\{([\s\S]*)\}$/)[1];
+            scratchWindow.postMessage(code, "*");
+        });
+
+        document.getElementById("addTermino").addEventListener("click", () => {
+            let termino = document.getElementById("txtTermino").value;
+            let etiqueta = document.getElementById("selectEtiqueta").value;
+            data.push({
+                input: termino,
+                output: etiqueta
+            })
+            alert("añadido '" + termino + "' a '" + etiqueta + "'");
+            console.log(data);
+        });
+
+    </script>
+</body>
+
+</html>
